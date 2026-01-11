@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Villager Land Claim Portal</title>
+
+  <!-- Leaflet CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+
+  <style>
+    :root {
+      --bg-dark: #0f172a;
+      --card-dark: #111827;
+      --accent: #22c55e;
+      --text-light: #e5e7eb;
+      --muted: #9ca3af;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --info: #3b82f6;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: "Segoe UI", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: linear-gradient(135deg, #020617, #0f172a);
+      color: var(--text-light);
+    }
+
+    /* ---------- NAVBAR ---------- */
+    .navbar {
+      height: 60px;
+      background: #020617;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 15px;
+      border-bottom: 1px solid #1e293b;
+    }
+
+    .navbar h1 {
+      font-size: 18px;
+      color: var(--accent);
+    }
+
+    .navbar .nav-actions {
+      display: flex;
+      gap: 15px;
+    }
+
+    .navbar button {
+      background: transparent;
+      color: var(--text-light);
+      padding: 4px 10px;
+      font-size: 14px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .navbar button:hover {
+      background: var(--accent);
+      color: black;
+    }
+
+    /* ---------- LAYOUT ---------- */
+    .main {
+      padding: 25px;
+      max-width: 1200px;
+      margin: auto;
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 25px;
+    }
+
+    @media (max-width: 900px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ---------- CARDS ---------- */
+    .card {
+      background: var(--card-dark);
+      padding: 20px;
+      border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    h2,
+    h3 {
+      margin-top: 0;
+      color: var(--accent);
+      text-align: center;
+    }
+
+    /* ---------- FORM ---------- */
+    label {
+      display: block;
+      margin-top: 12px;
+      font-weight: 600;
+    }
+
+    input,
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      border-radius: 8px;
+      border: none;
+    }
+
+    input {
+      background: #020617;
+      color: var(--text-light);
+      border: 1px solid #334155;
+    }
+
+    button {
+      margin-top: 16px;
+      background: var(--accent);
+      font-size: 16px;
+      cursor: pointer;
+      color: black;
+      font-weight: bold;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    /* ---------- STATUS ---------- */
+    .status-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .status-list li {
+      background: #020617;
+      margin: 8px 0;
+      padding: 10px 12px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .badge {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .Pending {
+      background: var(--warning);
+      color: black;
+    }
+
+    .Approved {
+      background: var(--accent);
+      color: black;
+    }
+
+    .Rejected {
+      background: var(--danger);
+    }
+
+    .Forwarded {
+      background: var(--info);
+    }
+
+    /* ---------- PROCESS ---------- */
+    .progress span {
+      display: block;
+      padding: 8px;
+      margin: 6px 0;
+      border-left: 4px solid #334155;
+    }
+
+    .active-step {
+      border-left-color: var(--accent);
+      font-weight: bold;
+    }
+
+    /* ---------- SUMMARY ---------- */
+    .summary div {
+      margin: 8px 0;
+    }
+
+    /* ---------- MAP ---------- */
+    #map {
+      height: 350px;
+      border-radius: 12px;
+      margin-top: 10px;
+    }
+
+    /* ---------- ABOUT ---------- */
+    .about {
+      margin-top: 40px;
+      background: #020617;
+      padding: 20px;
+      border-radius: 14px;
+      border: 1px solid #1e293b;
+    }
+
+    .about p {
+      color: var(--muted);
+      line-height: 1.6;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- NAVBAR -->
+  <div class="navbar">
+    <h1>🌿 FRA Land Claim Portal</h1>
+    <div class="nav-actions">
+      <button onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="container">
+      <!-- LEFT: Claim Form & Status -->
+      <div class="card">
+        <h2>🏡 Submit Land Claim</h2>
+
+        <form id="claimForm" enctype="multipart/form-data">
+          <label>Full Name</label>
+          <input name="name" required />
+
+          <label>Village Name</label>
+          <input name="village" required />
+
+          <label>Land Area (acres)</label>
+          <input name="landArea" required />
+
+          <label>Land Type</label>
+          <input name="landType" required />
+
+          <label>Upload Document</label>
+          <input type="file" name="document" required />
+
+          <button type="submit">Submit Claim</button>
+        </form>
+
+        <hr style="margin: 20px 0; border-color: #1e293b" />
+
+        <h3>📌 Claim Status</h3>
+        <ul id="statusList" class="status-list">
+          <li>Loading...</li>
+        </ul>
+      </div>
+
+      <!-- RIGHT: Claim Process & Summary -->
+      <div>
+        <div class="card">
+          <h3>🧭 Claim Process</h3>
+          <div class="progress">
+            <span>1️⃣ Submitted</span>
+            <span>2️⃣ District Review</span>
+            <span>3️⃣ Final Approval</span>
+          </div>
+        </div>
+
+        <br />
+
+        <div class="card summary">
+          <h3>📊 Claim Summary</h3>
+          <div>⏳ Pending: <span id="pCount">0</span></div>
+          <div>✅ Approved: <span id="aCount">0</span></div>
+          <div>❌ Rejected: <span id="rCount">0</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAP -->
+    <div class="card" style="margin-top: 30px">
+      <h2>🗺️ Locate Land on Map</h2>
+
+      <input
+        id="landAddress"
+        placeholder="Village, Taluka, District, State"
+      />
+      <button onclick="locateLand()">Show Location</button>
+      <p id="locationStatus"></p>
+
+      <div id="map"></div>
+    </div>
+
+    <!-- ABOUT -->
+    <div id="about" class="about">
+      <h2>ℹ️ About Us</h2>
+      <p>
+        This portal is developed to empower forest dwellers and tribal citizens to
+        digitally submit and track Forest Rights Act (FRA) land claims. The system
+        ensures transparency, faster approvals, and GIS-based land verification.
+      </p>
+    </div>
+  </div>
+
+  <!-- LOGOUT SCRIPT -->
+  <script>
+    function logout() {
+      alert("Logged out successfully");
+      window.location.href = "dashboard.html";
+    }
+  </script>
+ 
+  <!-- LEAFLET MAP JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- MAP INITIALIZATION -->
+  <script>
+    // Initialize map centered on India
+    const map = L.map("map").setView([20.5937, 78.9629], 5);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "© OpenStreetMap contributors",
+    }).addTo(map);
+
+    let landMarker;
+
+    async function locateLand() {
+      const address = document.getElementById("landAddress").value;
+      const status = document.getElementById("locationStatus");
+
+      if (!address) {
+        status.textContent = "❌ Please enter land address";
+        return;
+      }
+
+      status.textContent = "🔍 Locating land...";
+
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+            address
+          )}`
+        );
+        const data = await res.json();
+
+        if (data.length === 0) {
+          status.textContent = "❌ Location not found";
+          return;
+        }
+
+        const lat = data[0].lat;
+        const lon = data[0].lon;
+
+        if (landMarker) {
+          map.removeLayer(landMarker);
+        }
+
+        landMarker = L.marker([lat, lon])
+          .addTo(map)
+          .bindPopup(`<b>Land Location</b><br>${address}`)
+          .openPopup();
+
+        map.setView([lat, lon], 14);
+        status.textContent = "✅ Land location displayed";
+      } catch (err) {
+        status.textContent = "❌ Error fetching location";
+        console.error(err);
+      }
+    }
+  </script>
+
+<!-- CLAIM FORM SUBMISSION & STATUS LOADING (Mocked for frontend testing) -->
+<script>
+  const form = document.getElementById("claimForm");
+  const statusList = document.getElementById("statusList");
+
+  // Load claims from localStorage or initialize empty array
+  function getClaims() {
+    const claims = localStorage.getItem("mockClaims");
+    return claims ? JSON.parse(claims) : [];
+  }
+
+  function saveClaims(claims) {
+    localStorage.setItem("mockClaims", JSON.stringify(claims));
+  }
+
+  // Form submission
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const formData = new FormData(form);
+    const name = formData.get("name");
+    const village = formData.get("village");
+    const landArea = formData.get("landArea");
+    const landType = formData.get("landType");
+
+    // Create new claim object (status defaults to Pending)
+    const newClaim = {
+      name: name,
+      village: village,
+      landArea: landArea,
+      landType: landType,
+      status: "Pending",
+    };
+
+    // Get existing claims, add new, and save
+    const claims = getClaims();
+    claims.push(newClaim);
+    saveClaims(claims);
+
+    alert("✅ Claim Submitted Successfully (Mocked)");
+    form.reset();
+    loadStatus();
+  });
+
+  // Load and display claim status
+  function loadStatus() {
+    const claims = getClaims();
+    statusList.innerHTML = "";
+
+    if (claims.length === 0) {
+      statusList.innerHTML = "<li>No claims submitted yet</li>";
+      document.getElementById("pCount").textContent = 0;
+      document.getElementById("aCount").textContent = 0;
+      document.getElementById("rCount").textContent = 0;
+      return;
+    }
+
+    let pending = 0,
+      approved = 0,
+      rejected = 0;
+
+    claims.forEach((c) => {
+      const status = (c.status || "Pending").toLowerCase();
+
+      statusList.innerHTML += `
+        <li>
+          <span>${c.name}</span>
+          <span class="badge ${capitalize(status)}">${capitalize(status)}</span>
+        </li>
+      `;
+
+      if (status === "pending") pending++;
+      else if (status === "approved") approved++;
+      else if (status === "rejected") rejected++;
+    });
+
+    document.getElementById("pCount").textContent = pending;
+    document.getElementById("aCount").textContent = approved;
+    document.getElementById("rCount").textContent = rejected;
+  }
+
+  // Capitalize first letter
+  function capitalize(s) {
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+
+  // Load claims on page load
+  loadStatus();
+</script>
+
+</body>
+</html>

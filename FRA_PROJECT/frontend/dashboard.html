@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FRA Atlas | AI-Powered DSS</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: "Segoe UI", sans-serif;
+            background: linear-gradient(135deg, #0f172a, #020617);
+            color: #ffffff;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        /* ---------- ROLE CARDS ---------- */
+        .container {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            padding: 40px;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 16px;
+            width: 280px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+        }
+
+        /* ---------- WORKFLOW ---------- */
+        .flow {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 30px;
+            flex-wrap: wrap;
+        }
+
+        .flow div {
+            background: #020617;
+            border: 1px dashed #38bdf8;
+            border-radius: 12px;
+            padding: 20px;
+            width: 200px;
+            text-align: center;
+        }
+
+        /* ---------- LANGUAGE ---------- */
+        .language {
+            text-align: center;
+            padding: 20px;
+            font-size: 14px;
+            color: #94a3b8;
+        }
+
+        /* ---------- FOOTER ---------- */
+        footer {
+            background: #020617;
+            text-align: center;
+            padding: 20px;
+            font-size: 13px;
+            border-top: 1px solid #1e293b;
+        }
+
+        /* ---------- MODAL ---------- */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-box {
+            background: #020617;
+            padding: 30px;
+            width: 360px;
+            border-radius: 12px;
+            border: 1px solid #1e293b;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 8px;
+            border: none;
+        }
+
+        input {
+            background: #0f172a;
+            color: #fff;
+            border: 1px solid #1e293b;
+            width: 95%;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 8px;
+            border: none;
+        }
+
+        button {
+            background: #38bdf8;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .error {
+            margin-top: 10px;
+            color: #f87171;
+            font-size: 14px;
+        }
+
+        .switch {
+            margin-top: 15px;
+            font-size: 14px;
+            cursor: pointer;
+            color: #38bdf8;
+            text-align: center;
+        }
+
+        .close {
+            text-align: right;
+            cursor: pointer;
+            color: #f87171;
+        }
+
+        /* ---------- NAVBAR ---------- */
+    .navbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 14px 30px;
+        background: #020617;
+        border-bottom: 1px solid #1e293b;
+    }
+
+    .nav-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: bold;
+        font-size: 18px;
+    }
+
+    .logo {
+        width: 36px;
+        height: 36px;
+        overflow: hidden;   
+    }
+
+    .logo img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;  /* scale properly */
+    }
+
+    .menu {
+        cursor: pointer;
+    }
+
+    .menu div {
+        width: 26px;
+        height: 3px;
+        background: #ffffff;
+        margin: 5px 0;
+        transition: 0.3s;
+    }
+    </style>
+</head>
+
+<body>
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <div class="logo">
+                <img src="https://res.cloudinary.com/dsjvzlgny/image/upload/v1768060553/logo_vpokem.png" alt="FRA Logo">
+            </div>
+            <span>FRA</span>
+        </div>
+    </nav>
+
+    <header>
+        <h1>AI-Powered FRA Atlas & WebGIS DSS</h1>
+        <p>Integrated Monitoring & Decision Support System for FRA Implementation</p>
+    </header>
+
+    <!-- ROLE SELECTION -->
+    <section class="container">
+        <div class="card" onclick="openModal('Villager')">
+            <h2>👩‍🌾 Villager</h2>
+            <p>Apply & track forest rights claims</p>
+        </div>
+
+        <div class="card" onclick="openModal('District Official')">
+            <h2>🏢 District Official</h2>
+            <p>Verify & approve claims</p>
+        </div>
+
+        <div class="card" onclick="openModal('State Authority')">
+            <h2>🏛 State Authority</h2>
+            <p>Monitor performance & analytics</p>
+        </div>
+    </section>
+
+    <!-- WORKFLOW -->
+    <section class="flow">
+        <div>📝 Submit Claim</div>
+        <div>🗺 GIS Verification</div>
+        <div>🤖 AI Analysis</div>
+        <div>✅ Final Approval</div>
+    </section>
+
+    <!-- LANGUAGE -->
+    <section class="language">
+        🌐 English | हिंदी | मराठी &nbsp;&nbsp; ♿ Accessibility Friendly
+    </section>
+
+    <footer>
+        <p>© FRA Atlas | Government of India</p>
+        <p>AI-Powered Forest Rights Monitoring System | Buildathon Project</p>
+    </footer>
+
+    <!-- AUTH MODAL -->
+    <div class="modal" id="authModal">
+        <div class="modal-box">
+            <div class="close" onclick="closeModal()">✖</div>
+            <h3 id="roleTitle"></h3>
+
+            <!-- LOGIN -->
+            <div id="loginForm">
+                <input id="loginUser" placeholder="Username" />
+                <input id="loginPass" type="password" placeholder="Password" />
+                <button onclick="login()">Login</button>
+                <div class="error" id="loginError"></div>
+                <div class="switch" onclick="switchForm()">New user? Register</div>
+            </div>
+
+            <!-- REGISTER -->
+            <div id="registerForm" style="display: none;">
+                <input id="regUser" placeholder="Username" />
+                <input id="regPass" type="password" placeholder="Password" />
+                <input id="regConfirm" type="password" placeholder="Confirm Password" />
+                <button onclick="register()">Register</button>
+                <div class="error" id="registerError"></div>
+                <div class="switch" onclick="switchForm()">Already registered? Login</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentRole = "";
+
+        function getDashboardByRole(role) {
+            if (role === "Villager") return "villager.html";
+            if (role === "District Official") return "district.html";
+            if (role === "State Authority") return "stateauthority.html";
+        }
+
+        function openModal(role) {
+            currentRole = role;
+            authModal.style.display = "flex";
+            roleTitle.innerText = role + " Login";
+            loginError.innerText = "";
+            registerError.innerText = "";
+        }
+
+        function closeModal() {
+            authModal.style.display = "none";
+        }
+
+        function switchForm() {
+            loginForm.style.display =
+                loginForm.style.display === "none" ? "block" : "none";
+            registerForm.style.display =
+                registerForm.style.display === "none" ? "block" : "none";
+        }
+
+        function register() {
+            if (regPass.value !== regConfirm.value) {
+                registerError.innerText = "Passwords do not match";
+                return;
+            }
+
+            localStorage.setItem(
+                currentRole + "_" + regUser.value,
+                JSON.stringify({
+                    username: regUser.value,
+                    password: regPass.value,
+                    role: currentRole
+                })
+            );
+
+            registerError.innerText = "Registered successfully";
+            setTimeout(switchForm, 800);
+        }
+
+        function login() {
+            const data = localStorage.getItem(
+                currentRole + "_" + loginUser.value
+            );
+
+            if (!data) {
+                loginError.innerText = "User not registered";
+                return;
+            }
+
+            const user = JSON.parse(data);
+
+            if (user.password !== loginPass.value) {
+                loginError.innerText = "Invalid password";
+                return;
+            }
+
+            localStorage.setItem("currentUser", JSON.stringify(user));
+            window.location.href = getDashboardByRole(user.role);
+        }
+
+        document.querySelector(".menu").onclick = () => {
+            alert("Menu options can be added here");
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>District Official – FRA Dashboard</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+    body { background: #121212; color: #f0f0f0; }
+    h2,h3 { color: #ffcc00; margin-bottom: 1rem; }
+    .container { width: 95%; max-width: 1300px; margin: 1.5rem auto; }
+    section { background: #1e1e1e; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; }
+    .header { display: flex; justify-content: space-between; align-items: center; background: #1b1b1b; padding: 1rem 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; }
+    .role { color: #4caf50; font-weight: bold; }
+    .logout { background: #f44336; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+    .kpi { background: #2a2a2a; padding: 1.2rem; border-radius: 10px; text-align: center; }
+    .kpi span { font-size: 2rem; font-weight: bold; }
+    table { width: 100%; border-collapse: collapse; }
+    th,td { padding: 0.8rem; border-bottom: 1px solid #333; }
+    th { background: #333; }
+    tr:hover { background: #2a2a2a; cursor: pointer; }
+    select, input { background: #2a2a2a; color: #fff; border: none; padding: 0.5rem; border-radius: 5px; margin-right: 0.5rem; }
+    .map { height: 380px; border-radius: 12px; }
+    .btn { padding: 0.5rem 1rem; border: none; border-radius: 5px; font-weight: bold; margin-right: 0.4rem; cursor: pointer; }
+    .approve { background: #4caf50; color: #fff; }
+    .reject { background: #f44336; color: #fff; }
+    .forward { background: #2196f3; color: #fff; }
+    .details-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; }
+    .detail-card { background: #2a2a2a; padding: 1rem; border-radius: 10px; }
+    .audit-item { border-bottom: 1px solid #333; padding: 0.5rem 0; }
+</style>
+</head>
+
+<body>
+<div class="container">
+
+    <div class="header">
+        <div>
+            <h2>District Official Dashboard</h2>
+            <p class="role">Logged in as: District Officer</p>
+        </div>
+        <button class="logout" onclick="logout()">Logout</button>
+    </div>
+
+    <section>
+        <h2>📊 District Dashboard</h2>
+        <div class="kpi-grid">
+            <div class="kpi"><h3>Pending</h3><span id="kpiPending">0</span></div>
+            <div class="kpi"><h3>Approved</h3><span id="kpiApproved">0</span></div>
+            <div class="kpi"><h3>Rejected</h3><span id="kpiRejected">0</span></div>
+            <div class="kpi"><h3>Forwarded</h3><span id="kpiForwarded">0</span></div>
+        </div>
+    </section>
+
+    <section>
+        <h2>📋 Claim List</h2>
+        <select id="filterVillage"><option value="">All Villages</option></select>
+        <select id="filterStatus"><option value="">All Status</option></select>
+        <input type="date" id="filterDate"/>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Applicant</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody id="claimsTableBody">
+            </tbody>
+        </table>
+    </section>
+
+    <section>
+        <h2>📄 Claim Details</h2>
+        <div class="details-grid">
+            <div class="detail-card"><strong>Applicant:</strong> <span id="applicant">-</span></div>
+            <div class="detail-card"><strong>Land Area:</strong> <span id="area">-</span></div>
+            <div class="detail-card"><strong>Documents:</strong> <span id="documents">-</span></div>
+            <div class="detail-card"><strong>Status:</strong> <span id="status">-</span></div>
+        </div>
+    </section>
+
+    <section>
+        <h2>🗺 GIS Verification</h2>
+        <div id="claimMap" class="map"></div>
+    </section>
+
+    <section>
+        <h2>✅❌ Decision Panel</h2>
+        <p>Selected Claim: <strong id="selectedClaim">None</strong></p>
+        <button class="btn approve" onclick="updateStatus('Approved')">Approve</button>
+        <button class="btn reject" onclick="updateStatus('Rejected')">Reject</button>
+        <button class="btn forward" onclick="updateStatus('Forwarded')">Forward to State</button>
+    </section>
+
+    <section>
+        <h2>🗺 District GIS Overview</h2>
+        <div id="districtMap" class="map"></div>
+    </section>
+
+    <section>
+        <h2>🧾 Audit Trail Logs</h2>
+        <div class="audit-item">Officer verified CLM001 – 09 Jan 2026</div>
+        <div class="audit-item">GIS Check completed – 08 Jan 2026</div>
+    </section>
+
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    
+
+
+let claims = [];
+
+fetch("http://127.0.0.1:8000/api/claims/list/")
+  .then(response => response.json())
+  .then(data => {
+      claims = data;
+      renderTable();
+  });
+
+
+
+    const claimMap = L.map('claimMap').setView([20.5,78.9], 6);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(claimMap);
+    const districtMap = L.map('districtMap').setView([19.0,73.0], 6);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(districtMap);
+
+    function renderTable() {
+        const tbody = document.getElementById('claimsTableBody');
+        tbody.innerHTML = '';
+        claims.forEach(c => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${c.id}</td><td>${c.applicant}</td><td>${c.status}</td><td>${c.date}</td>`;
+            tr.onclick = () => loadClaim(c.id);
+            tbody.appendChild(tr);
+        });
+        updateKPI();
+    }
+
+    function loadClaim(id) {
+        const claim = claims.find(c => c.id === id);
+        if(!claim) return;
+        document.getElementById('selectedClaim').innerText = claim.id;
+        document.getElementById('applicant').innerText = claim.applicant;
+        document.getElementById('area').innerText = claim.area;
+        document.getElementById('documents').innerText = claim.documents;
+        document.getElementById('status').innerText = claim.status;
+        claimMap.setView([claim.lat, claim.lng], 12);
+    }
+
+    
+    function updateStatus(newStatus) {
+    const selectedId = document.getElementById("selectedClaim").innerText;
+
+    if (!selectedId || selectedId === "None") {
+        alert("Select a claim first");
+        return;
+    }
+
+    fetch("http://127.0.0.1:8000/api/claims/update/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            id: selectedId,
+            status: newStatus
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert("Status updated to " + newStatus);
+
+        // reload data
+        fetch("http://127.0.0.1:8000/api/claims/list/")
+          .then(res => res.json())
+          .then(data => {
+              claims = data;
+              renderTable();
+          });
+    });
+}
+
+
+   function updateKPI() {
+    let pending = claims.filter(c => c.status === "Pending").length;
+    let approved = claims.filter(c => c.status === "Approved").length;
+    let rejected = claims.filter(c => c.status === "Rejected").length;
+    let forwarded = claims.filter(c => c.status === "Forwarded").length;
+
+    document.getElementById("kpiPending").innerText = pending;
+    document.getElementById("kpiApproved").innerText = approved;
+    document.getElementById("kpiRejected").innerText = rejected;
+    document.getElementById("kpiForwarded").innerText = forwarded;
+}
+
+
+    function logout() { window.location.href = "dashboard.html"; }
+
+    renderTable();
+</script>
+</body>
+</html>
